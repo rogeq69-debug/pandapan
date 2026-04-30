@@ -25,16 +25,20 @@ export default function CheckoutForm() {
       setError('Ingresá tu nombre completo.')
       return
     }
-    if (!/^\d{7,15}$/.test(phone.replace(/\s/g, ''))) {
-      setError('Ingresá un número de WhatsApp válido (solo dígitos).')
+    const cleanPhone = phone.replace(/\D/g, '')
+    if (!/^\d{8,10}$/.test(cleanPhone)) {
+      setError('Ingresá tu número sin 0 ni 15. Ej: 3511234567')
       return
     }
+
+    // Agregar prefijo Argentina internacionalmente para WhatsApp
+    const fullPhone = `549${cleanPhone}`
 
     setLoading(true)
     try {
       const result = await saveOrder({
         customerName: name.trim(),
-        customerPhone: phone.trim(),
+        customerPhone: cleanPhone,
         items,
         total,
       })
@@ -44,7 +48,7 @@ export default function CheckoutForm() {
         return
       }
 
-      const url = buildWhatsAppURL(name.trim(), phone.trim(), items, total)
+      const url = buildWhatsAppURL(name.trim(), fullPhone, items, total)
       clearCart()
       window.location.href = url
     } catch {
@@ -74,14 +78,14 @@ export default function CheckoutForm() {
 
       <div className="space-y-1.5">
         <Label htmlFor="checkout-phone" className="text-sm font-semibold">
-          WhatsApp (sin +, sin espacios)
+          Celular (sin 0 ni 15)
         </Label>
         <Input
           id="checkout-phone"
           type="tel"
-          placeholder="Ej: 5491112345678"
+          placeholder="Ej: 3511234567"
           value={phone}
-          onChange={(e) => setPhone(e.target.value.replace(/[^\d\s]/g, ''))}
+          onChange={(e) => setPhone(e.target.value.replace(/[^\d]/g, ''))}
           className="h-12 rounded-xl border-border bg-background text-base"
           required
           autoComplete="tel"

@@ -6,7 +6,7 @@ export function buildWhatsAppURL(
   items: CartItem[],
   total: number
 ): string {
-  // Strip everything except digits to avoid format issues with wa.me
+  // Bakery's number from env — wa.me opens a chat TO the bakery
   const number = (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '').replace(/\D/g, '')
 
   const lines = items

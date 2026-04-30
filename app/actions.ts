@@ -31,10 +31,11 @@ export async function saveOrder(payload: SaveOrderPayload): Promise<{ success: b
   }
 
   const body = {
-    id: order.id,
-    cliente: `${order.customerName} | ${order.customerPhone}`,
+    id:        order.id,
+    nombre:    order.customerName,
+    telefono:  order.customerPhone,
     productos: buildProductsSummary(order.items),
-    total: order.total,
+    total:     order.total,
   }
 
   try {
