@@ -2,7 +2,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { products, categories, getByCategory } from '@/lib/products'
 import ProductCard from '@/components/ProductCard'
 
-export default function CatalogSection() {
+interface Props {
+  prices: Record<string, number>
+}
+
+export default function CatalogSection({ prices }: Props) {
   return (
     <section
       id="catalogo"
@@ -52,7 +56,7 @@ export default function CatalogSection() {
               ) : (
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                   {items.map((product) => (
-                    <ProductCard key={product.id} product={product} />
+                    <ProductCard key={product.id} product={product} prices={prices} />
                   ))}
                 </div>
               )}

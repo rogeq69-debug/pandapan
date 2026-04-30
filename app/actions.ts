@@ -2,6 +2,23 @@
 
 import { CartItem, Order } from '@/types'
 
+export async function getPrices(): Promise<Record<string, number>> {
+  const scriptUrl = process.env.GOOGLE_SCRIPT_URL
+  if (!scriptUrl) return {}
+
+  try {
+    const res = await fetch(`${scriptUrl}?action=precios`, {
+      redirect: 'follow',      // Apps Script redirige antes de responder
+      cache: 'no-store',       // siempre fresco — sin cache de Next.js
+    })
+    if (!res.ok) return {}
+    const data = await res.json()
+    return (data.prices as Record<string, number>) ?? {}
+  } catch {
+    return {}
+  }
+}
+
 interface SaveOrderPayload {
   customerName: string
   customerPhone: string

@@ -10,15 +10,19 @@ import { ShoppingBag } from 'lucide-react'
 
 interface Props {
   product: Product
+  prices: Record<string, number>
 }
 
-export default function ProductCard({ product }: Props) {
+export default function ProductCard({ product, prices }: Props) {
   const [selectedVariant, setSelectedVariant] = useState(product.variants[0])
   const [added, setAdded] = useState(false)
   const { addItem, openCart } = useCartStore()
 
+  const resolvePrice = (label: string) =>
+    prices[`${product.id}|${label}`] ?? 0
+
   const handleAdd = () => {
-    addItem(product, selectedVariant.label, selectedVariant.price)
+    addItem(product, selectedVariant.label, resolvePrice(selectedVariant.label))
     openCart()
     setAdded(true)
     setTimeout(() => setAdded(false), 1200)
@@ -70,8 +74,8 @@ export default function ProductCard({ product }: Props) {
 
         {/* Precio */}
         <p className="mt-auto text-sm font-medium text-muted-foreground">
-          {selectedVariant.price > 0
-            ? `$${selectedVariant.price.toLocaleString('es-AR')}`
+          {resolvePrice(selectedVariant.label) > 0
+            ? `$${resolvePrice(selectedVariant.label).toLocaleString('es-AR')}`
             : 'Consultar precio'}
         </p>
 
