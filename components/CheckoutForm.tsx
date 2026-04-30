@@ -45,8 +45,8 @@ export default function CheckoutForm() {
       }
 
       const url = buildWhatsAppURL(name.trim(), phone.trim(), items, total)
-      window.open(url, '_blank')
       clearCart()
+      window.location.href = url
     } catch {
       setError('Error de conexión. Verificá tu internet e intentá de nuevo.')
     } finally {
