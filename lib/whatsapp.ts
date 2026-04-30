@@ -6,7 +6,8 @@ export function buildWhatsAppURL(
   items: CartItem[],
   total: number
 ): string {
-  const number = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? ''
+  // Strip everything except digits to avoid format issues with wa.me
+  const number = (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '').replace(/\D/g, '')
 
   const lines = items
     .map((item) => `• ${item.product.name} (${item.variantLabel}) x${item.qty} — $${item.price * item.qty}`)

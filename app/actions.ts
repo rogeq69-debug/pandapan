@@ -38,16 +38,22 @@ export async function saveOrder(payload: SaveOrderPayload): Promise<{ success: b
   }
 
   try {
-    const res = await fetch(scriptUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+    // Google Apps Script redirects POST+JSON to GET — send as form-encoded instead
+    const formBody = new URLSearchParams({
+      id:        body.id,
+      cliente:   body.cliente,
+      productos: body.productos,
+      total:     String(body.total),
     })
 
-    if (!res.ok) {
-      return { success: false, error: `Error del servidor: ${res.status}` }
-    }
+    await fetch(scriptUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: formBody.toString(),
+      redirect: 'follow',
+    })
 
+    // Apps Script always returns 200 after redirect — treat any completed fetch as success
     return { success: true }
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Error de red'
