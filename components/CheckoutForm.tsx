@@ -28,7 +28,7 @@ export default function CheckoutForm() {
     setError('')
 
     if (name.trim().length < 2) {
-      setError('Ingresá tu nombre completo.')
+      setError('Ingresá el nombre del local o comercio.')
       return
     }
     const cleanPhone = phone.replace(/\D/g, '')
@@ -87,17 +87,17 @@ export default function CheckoutForm() {
       {/* Nombre */}
       <div className="space-y-1.5">
         <Label htmlFor="checkout-name" className="text-sm font-semibold">
-          Tu nombre
+          Nombre del local / comercio
         </Label>
         <Input
           id="checkout-name"
-          placeholder="Ej: María García"
+          placeholder="Ej: Restaurante El Rancho"
           value={name}
           onChange={(e) => setName(e.target.value)}
           className="h-12 rounded-xl border-border bg-background text-base"
           required
           minLength={2}
-          autoComplete="name"
+          autoComplete="organization"
         />
       </div>
 

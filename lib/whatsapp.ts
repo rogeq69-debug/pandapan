@@ -21,7 +21,7 @@ export function buildWhatsAppURL(
 
   const message = [
     '🐼 *Nuevo Pedido PandaPan*',
-    `👤 Nombre: ${customerName}`,
+    `🏪 Local: ${customerName}`,
     `📱 Tel: ${customerPhone}`,
     entregaLine,
     `🕐 Horario preferido: ${deliveryTime}`,
