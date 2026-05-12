@@ -104,7 +104,7 @@ export default function CheckoutForm() {
       {/* Teléfono */}
       <div className="space-y-1.5">
         <Label htmlFor="checkout-phone" className="text-sm font-semibold">
-          Celular (sin 0 ni 15)
+          Celular del responsable (sin 0 ni 15)
         </Label>
         <Input
           id="checkout-phone"
