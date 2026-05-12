@@ -3,25 +3,33 @@ import { CartItem } from '@/types'
 export function buildWhatsAppURL(
   customerName: string,
   customerPhone: string,
+  address: string,
+  deliveryTime: string,
+  deliveryType: 'pickup' | 'delivery',
   items: CartItem[],
   total: number
 ): string {
-  // Bakery's number from env — wa.me opens a chat TO the bakery
   const number = (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '').replace(/\D/g, '')
 
   const lines = items
-    .map((item) => `• ${item.product.name} (${item.variantLabel}) x${item.qty} — $${item.price * item.qty}`)
+    .map((item) => `• ${item.product.name} (${item.variantLabel}) x${item.qty} — $${(item.price * item.qty).toLocaleString('es-AR')}`)
     .join('\n')
+
+  const entregaLine = deliveryType === 'pickup'
+    ? '🏭 Entrega: Retiro en fábrica'
+    : `🚚 Entrega: Envío a domicilio\n📍 Dirección: ${address}`
 
   const message = [
     '🐼 *Nuevo Pedido PandaPan*',
     `👤 Nombre: ${customerName}`,
     `📱 Tel: ${customerPhone}`,
+    entregaLine,
+    `🕐 Horario preferido: ${deliveryTime}`,
     '',
     '🛒 Detalle:',
     lines,
     '',
-    `💰 Total: $${total}`,
+    `💰 Total: $${total.toLocaleString('es-AR')}`,
   ].join('\n')
 
   return `https://wa.me/${number}?text=${encodeURIComponent(message)}`

@@ -6,7 +6,7 @@ interface CartStore {
   isOpen: boolean
   total: number
   count: number
-  addItem: (product: Product, variantLabel: string, price: number) => void
+  addItem: (product: Product, variantLabel: string, price: number, qty?: number) => void
   removeItem: (productId: string, variantLabel: string) => void
   updateQty: (productId: string, variantLabel: string, delta: number) => void
   clearCart: () => void
@@ -28,7 +28,7 @@ export const useCartStore = create<CartStore>((set) => ({
   total: 0,
   count: 0,
 
-  addItem: (product, variantLabel, price) => {
+  addItem: (product, variantLabel, price, qty = 1) => {
     set((state) => {
       const existing = state.items.find(
         (i) => i.product.id === product.id && i.variantLabel === variantLabel
@@ -36,10 +36,10 @@ export const useCartStore = create<CartStore>((set) => ({
       const newItems = existing
         ? state.items.map((i) =>
             i.product.id === product.id && i.variantLabel === variantLabel
-              ? { ...i, qty: i.qty + 1 }
+              ? { ...i, qty: i.qty + qty }
               : i
           )
-        : [...state.items, { product, variantLabel, price, qty: 1 }]
+        : [...state.items, { product, variantLabel, price, qty }]
       return { items: newItems, total: sumTotal(newItems), count: sumCount(newItems) }
     })
   },

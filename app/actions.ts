@@ -8,8 +8,8 @@ export async function getPrices(): Promise<Record<string, number>> {
 
   try {
     const res = await fetch(`${scriptUrl}?action=precios`, {
-      redirect: 'follow',      // Apps Script redirige antes de responder
-      cache: 'no-store',       // siempre fresco — sin cache de Next.js
+      redirect: 'follow',
+      cache: 'no-store',
     })
     if (!res.ok) return {}
     const data = await res.json()
@@ -22,6 +22,9 @@ export async function getPrices(): Promise<Record<string, number>> {
 interface SaveOrderPayload {
   customerName: string
   customerPhone: string
+  address: string
+  deliveryTime: string
+  deliveryType: 'pickup' | 'delivery'
   items: CartItem[]
   total: number
 }
@@ -42,23 +45,29 @@ export async function saveOrder(payload: SaveOrderPayload): Promise<{ success: b
     id: `PP-${Date.now()}`,
     customerName: payload.customerName,
     customerPhone: payload.customerPhone,
+    address: payload.address,
+    deliveryTime: payload.deliveryTime,
+    deliveryType: payload.deliveryType,
     items: payload.items,
     total: payload.total,
     createdAt: new Date().toISOString(),
   }
 
   const body = {
-    id:        order.id,
-    nombre:    order.customerName,
-    telefono:  order.customerPhone,
-    productos: buildProductsSummary(order.items),
-    total:     order.total,
+    id:          order.id,
+    nombre:      order.customerName,
+    telefono:    order.customerPhone,
+    direccion:   order.address,
+    horario:     order.deliveryTime,
+    tipoEntrega: order.deliveryType === 'pickup' ? 'Retiro en fábrica' : 'Envío a domicilio',
+    productos:   buildProductsSummary(order.items),
+    total:       order.total,
   }
 
   try {
     await fetch(scriptUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'text/plain' }, // avoids Apps Script CORS preflight redirect
+      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify(body),
       redirect: 'follow',
     })

@@ -7,7 +7,7 @@ export interface Product {
   id: string
   name: string
   slug: string
-  category: 'Panes' | 'Facturas' | 'Tortas'
+  category: 'Panes'
   variants: ProductVariant[]
   imageUrl: string
   available: boolean
@@ -24,6 +24,9 @@ export interface Order {
   id: string
   customerName: string
   customerPhone: string
+  address: string
+  deliveryTime: string
+  deliveryType: 'pickup' | 'delivery'
   items: CartItem[]
   total: number
   createdAt: string

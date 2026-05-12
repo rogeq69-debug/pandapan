@@ -6,7 +6,7 @@ import { Product } from '@/types'
 import { useCartStore } from '@/store/cartStore'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { ShoppingBag } from 'lucide-react'
+import { Minus, Plus, ShoppingBag } from 'lucide-react'
 
 interface Props {
   product: Product
@@ -15,6 +15,7 @@ interface Props {
 
 export default function ProductCard({ product, prices }: Props) {
   const [selectedVariant, setSelectedVariant] = useState(product.variants[0])
+  const [qty, setQty] = useState(1)
   const [added, setAdded] = useState(false)
   const { addItem, openCart } = useCartStore()
 
@@ -22,9 +23,10 @@ export default function ProductCard({ product, prices }: Props) {
     prices[`${product.id}|${label}`] ?? 0
 
   const handleAdd = () => {
-    addItem(product, selectedVariant.label, resolvePrice(selectedVariant.label))
+    addItem(product, selectedVariant.label, resolvePrice(selectedVariant.label), qty)
     openCart()
     setAdded(true)
+    setQty(1)
     setTimeout(() => setAdded(false), 1200)
   }
 
@@ -73,11 +75,40 @@ export default function ProductCard({ product, prices }: Props) {
         )}
 
         {/* Precio */}
-        <p className="mt-auto text-sm font-medium text-muted-foreground">
+        <p className="text-sm font-medium text-muted-foreground">
           {resolvePrice(selectedVariant.label) > 0
-            ? `$${resolvePrice(selectedVariant.label).toLocaleString('es-AR')}`
+            ? `$${resolvePrice(selectedVariant.label).toLocaleString('es-AR')} c/u`
             : 'Consultar precio'}
         </p>
+
+        {/* Selector de unidades */}
+        <div className="flex items-center gap-3 mt-1">
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Unidades</span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setQty((q) => Math.max(1, q - 1))}
+              className="flex h-7 w-7 items-center justify-center rounded-full border border-border bg-background text-foreground transition active:scale-90"
+              aria-label="Restar unidad"
+            >
+              <Minus className="h-3 w-3" />
+            </button>
+            <span className="w-6 text-center text-sm font-bold">{qty}</span>
+            <button
+              type="button"
+              onClick={() => setQty((q) => q + 1)}
+              className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white transition active:scale-90"
+              aria-label="Sumar unidad"
+            >
+              <Plus className="h-3 w-3" />
+            </button>
+          </div>
+          {resolvePrice(selectedVariant.label) > 0 && qty > 1 && (
+            <span className="ml-auto text-sm font-bold text-primary">
+              ${(resolvePrice(selectedVariant.label) * qty).toLocaleString('es-AR')}
+            </span>
+          )}
+        </div>
 
         {/* Botón agregar */}
         <Button
@@ -89,7 +120,7 @@ export default function ProductCard({ product, prices }: Props) {
           } text-white`}
         >
           <ShoppingBag className="h-4 w-4" />
-          {added ? '¡Agregado!' : 'Agregar al carrito'}
+          {added ? '¡Agregado!' : `Agregar${qty > 1 ? ` ${qty}` : ''} al carrito`}
         </Button>
       </div>
     </div>

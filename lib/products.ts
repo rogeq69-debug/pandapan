@@ -90,28 +90,9 @@ export const products: Product[] = [
     available: true,
   },
 
-  // ── Facturas ───────────────────────────────────────────
-  {
-    id: 'medialunas',
-    name: 'Medialunas Dulces',
-    slug: 'medialunas',
-    category: 'Facturas',
-    variants: [{ label: 'Unidad', price: 0 }],
-    imageUrl: '/catalogo/medialunas.jpg',
-    available: true,
-  },
-  {
-    id: 'criollos',
-    name: 'Criollos',
-    slug: 'criollos',
-    category: 'Facturas',
-    variants: [{ label: 'Unidad', price: 0 }],
-    imageUrl: '/catalogo/criollos.jpg',
-    available: true,
-  },
 ]
 
-export const categories = ['Panes', 'Facturas', 'Tortas'] as const
+export const categories = ['Panes'] as const
 
 export function getByCategory(category: string): Product[] {
   return products.filter((p) => p.category === category && p.available)
