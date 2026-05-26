@@ -4,9 +4,10 @@ import ProductCard from '@/components/ProductCard'
 
 interface Props {
   prices: Record<string, number>
+  units: Record<string, { cantidad: number; medidas: string }>
 }
 
-export default function CatalogSection({ prices }: Props) {
+export default function CatalogSection({ prices, units }: Props) {
   return (
     <section
       id="catalogo"
@@ -56,7 +57,7 @@ export default function CatalogSection({ prices }: Props) {
               ) : (
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                   {items.map((product) => (
-                    <ProductCard key={product.id} product={product} prices={prices} />
+                    <ProductCard key={product.id} product={product} prices={prices} units={units} />
                   ))}
                 </div>
               )}

@@ -2,6 +2,23 @@
 
 import { CartItem, Order } from '@/types'
 
+export async function getUnits(): Promise<Record<string, { cantidad: number; medidas: string }>> {
+  const scriptUrl = process.env.GOOGLE_SCRIPT_URL
+  if (!scriptUrl) return {}
+
+  try {
+    const res = await fetch(`${scriptUrl}?action=cantidades`, {
+      redirect: 'follow',
+      cache: 'no-store',
+    })
+    if (!res.ok) return {}
+    const data = await res.json()
+    return (data.units as Record<string, { cantidad: number; medidas: string }>) ?? {}
+  } catch {
+    return {}
+  }
+}
+
 export async function getPrices(): Promise<Record<string, number>> {
   const scriptUrl = process.env.GOOGLE_SCRIPT_URL
   if (!scriptUrl) return {}

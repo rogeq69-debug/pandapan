@@ -11,9 +11,10 @@ import { Minus, Plus, ShoppingBag } from 'lucide-react'
 interface Props {
   product: Product
   prices: Record<string, number>
+  units: Record<string, { cantidad: number; medidas: string }>
 }
 
-export default function ProductCard({ product, prices }: Props) {
+export default function ProductCard({ product, prices, units }: Props) {
   const [selectedVariant, setSelectedVariant] = useState(product.variants[0])
   const [qty, setQty] = useState(1)
   const [added, setAdded] = useState(false)
@@ -21,6 +22,12 @@ export default function ProductCard({ product, prices }: Props) {
 
   const resolvePrice = (label: string) =>
     prices[`${product.id}|${label}`] ?? 0
+
+  const resolveUnit = (label: string): string => {
+    const u = units[`${product.id}|${label}`]
+    if (!u) return 'c/u'
+    return u.cantidad > 1 ? `x${u.cantidad} ${u.medidas}` : u.medidas
+  }
 
   const handleAdd = () => {
     addItem(product, selectedVariant.label, resolvePrice(selectedVariant.label), qty)
@@ -77,7 +84,7 @@ export default function ProductCard({ product, prices }: Props) {
         {/* Precio */}
         <p className="text-sm font-medium text-muted-foreground">
           {resolvePrice(selectedVariant.label) > 0
-            ? `$${resolvePrice(selectedVariant.label).toLocaleString('es-AR')} c/u`
+            ? `$${resolvePrice(selectedVariant.label).toLocaleString('es-AR')} ${resolveUnit(selectedVariant.label)}`
             : 'Consultar precio'}
         </p>
 
