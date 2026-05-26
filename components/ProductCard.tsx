@@ -90,8 +90,7 @@ export default function ProductCard({ product, prices, units }: Props) {
 
         {/* Selector de unidades */}
         <div className="flex items-center gap-3 mt-1">
-          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Paquetes</span>
-          <div className="flex items-center gap-2">
+<div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => setQty((q) => Math.max(1, q - 1))}
