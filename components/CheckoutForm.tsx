@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useCartStore } from '@/store/cartStore'
 import { saveOrder } from '@/app/actions'
 import { buildWhatsAppURL } from '@/lib/whatsapp'
@@ -8,9 +8,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Loader2 } from 'lucide-react'
+import type { Zone } from '@/lib/zones'
 
 const MINIMUM_FREE_DELIVERY = 50000
 const SHIPPING_ESTIMATE = '$9.000–$10.000'
+const PICKUP_DAYS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
 
 export default function CheckoutForm() {
   const [name, setName] = useState('')
@@ -21,7 +23,72 @@ export default function CheckoutForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  // Zone detection
+  const [availableDays, setAvailableDays] = useState<string[]>([])
+  const [zoneLoading, setZoneLoading] = useState(false)
+  const [detectedZone, setDetectedZone] = useState<Zone | null>(null)
+  const [zoneError, setZoneError] = useState('')
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
   const { items, total, clearCart } = useCartStore()
+
+  // Fetch zone from API
+  const fetchZone = async (addr: string) => {
+    setZoneLoading(true)
+    setZoneError('')
+    setDetectedZone(null)
+    setAvailableDays([])
+    setDeliveryTime('')
+    try {
+      const res = await fetch(`/api/zone?address=${encodeURIComponent(addr)}`)
+      const data = await res.json()
+      if (data.days) {
+        setAvailableDays(data.days)
+        setDetectedZone(data.zone as Zone)
+      } else {
+        setZoneError(data.error ?? 'No pudimos detectar la zona. Verificá la dirección.')
+      }
+    } catch {
+      setZoneError('Error de conexión al detectar la zona.')
+    } finally {
+      setZoneLoading(false)
+    }
+  }
+
+  // When delivery type changes, reset days
+  useEffect(() => {
+    setDeliveryTime('')
+    setDetectedZone(null)
+    setZoneError('')
+    if (deliveryType === 'pickup') {
+      setAvailableDays(PICKUP_DAYS)
+    } else {
+      setAvailableDays([])
+      // Re-check if there's already an address
+      if (address.trim().length >= 5) fetchZone(address)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deliveryType])
+
+  // Debounce address changes to detect zone
+  useEffect(() => {
+    if (deliveryType !== 'delivery') return
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+
+    if (address.trim().length >= 5) {
+      debounceRef.current = setTimeout(() => fetchZone(address), 700)
+    } else {
+      setAvailableDays([])
+      setDetectedZone(null)
+      setZoneError('')
+      setDeliveryTime('')
+    }
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [address])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -40,8 +107,8 @@ export default function CheckoutForm() {
       setError('Ingresá tu dirección de entrega.')
       return
     }
-    if (deliveryTime.trim().length < 2) {
-      setError('Ingresá el horario de entrega preferido.')
+    if (!deliveryTime) {
+      setError('Elegí el día de entrega.')
       return
     }
 
@@ -53,7 +120,7 @@ export default function CheckoutForm() {
         customerName: name.trim(),
         customerPhone: cleanPhone,
         address: deliveryType === 'delivery' ? address.trim() : 'Retiro en fábrica',
-        deliveryTime: deliveryTime.trim(),
+        deliveryTime: deliveryTime,
         deliveryType,
         items,
         total,
@@ -68,7 +135,7 @@ export default function CheckoutForm() {
         name.trim(),
         fullPhone,
         deliveryType === 'delivery' ? address.trim() : 'Retiro en fábrica',
-        deliveryTime.trim(),
+        deliveryTime,
         deliveryType,
         items,
         total,
@@ -81,6 +148,13 @@ export default function CheckoutForm() {
       setLoading(false)
     }
   }
+
+  const zoneBadge =
+    detectedZone === 'zona1'
+      ? '📍 Zona 1 — entregas lunes, miércoles y viernes'
+      : detectedZone === 'zona2'
+        ? '📍 Zona 2 — entregas martes y jueves'
+        : null
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4 pt-2">
@@ -173,19 +247,54 @@ export default function CheckoutForm() {
         </div>
       )}
 
-      {/* Horario preferido */}
+      {/* Día de entrega */}
       <div className="space-y-1.5">
-        <Label htmlFor="checkout-time" className="text-sm font-semibold">
-          Horario preferido
+        <Label htmlFor="checkout-day" className="text-sm font-semibold">
+          Día de entrega
         </Label>
-        <Input
-          id="checkout-time"
-          placeholder="Ej: Martes y jueves por la tarde"
-          value={deliveryTime}
-          onChange={(e) => setDeliveryTime(e.target.value)}
-          className="h-12 rounded-xl border-border bg-background text-base"
-          required
-        />
+
+        {/* Detectando zona... */}
+        {zoneLoading && (
+          <div className="flex items-center gap-2 rounded-xl border border-border bg-background px-4 py-3 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin text-primary" />
+            Detectando zona según tu dirección…
+          </div>
+        )}
+
+        {/* Badge de zona detectada */}
+        {zoneBadge && !zoneLoading && (
+          <p className="text-xs font-medium text-muted-foreground">{zoneBadge}</p>
+        )}
+
+        {/* Dropdown de días */}
+        {!zoneLoading && availableDays.length > 0 && (
+          <select
+            id="checkout-day"
+            value={deliveryTime}
+            onChange={(e) => setDeliveryTime(e.target.value)}
+            required
+            className="h-12 w-full rounded-xl border border-border bg-background px-3 text-base text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value="">Elegí un día</option>
+            {availableDays.map((day) => (
+              <option key={day} value={day}>
+                {day}
+              </option>
+            ))}
+          </select>
+        )}
+
+        {/* Mensaje si delivery sin dirección todavía */}
+        {deliveryType === 'delivery' && !zoneLoading && availableDays.length === 0 && !zoneError && (
+          <p className="text-sm text-muted-foreground">
+            Ingresá tu dirección para ver los días disponibles en tu zona.
+          </p>
+        )}
+
+        {/* Error de zona */}
+        {zoneError && !zoneLoading && (
+          <p className="text-sm text-destructive">{zoneError}</p>
+        )}
       </div>
 
       {error && (
